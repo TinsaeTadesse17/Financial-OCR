@@ -5,17 +5,9 @@ from dotenv import load_dotenv
 
 # Load environment variables from the .env file
 load_dotenv()
-# Replace this line
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://admin:password123@localhost:27017/financial_ocr_db?authSource=admin")
 
-# With explicit parameters
-MONGO_URI = (
-    "mongodb://admin:password123@localhost:27017/"
-    "financial_ocr_db?"
-    "authSource=admin&"
-    "retryWrites=true&"
-    "w=majority"
-)
+MONGO_URI = os.getenv("MONGODB_URL", "mongodb://admin:password123@mongodb:27017/financial_ocr_db?authSource=admin")
+
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)  
 db = client["financial_ocr_db"]
 users_collection = db["users"]
