@@ -5,17 +5,12 @@ from dotenv import load_dotenv
 
 # Load environment variables from the .env file
 load_dotenv()
-# Replace this line
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://admin:password123@localhost:27017/financial_ocr_db?authSource=admin")
 
-# With explicit parameters
-MONGO_URI = (
-    "mongodb://admin:password123@localhost:27017/"
-    "financial_ocr_db?"
-    "authSource=admin&"
-    "retryWrites=true&"
-    "w=majority"
-)
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
+
+MONGO_URI = os.getenv("MONGODB_URL", "mongodb://admin:password123@mongodb:27017/financial_ocr_db?authSource=admin")
+
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)  
 db = client["financial_ocr_db"]
 users_collection = db["users"]
@@ -25,25 +20,32 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Define admin user details
 admin_user = {
-    "username": "admin",
+    "username": ADMIN_USERNAME,
     "full_name": "Admin User",
-    "hashed_password": pwd_context.hash("password123"),
+    "hashed_password": pwd_context.hash(ADMIN_PASSWORD),
     "disabled": False,
     "role": "admin"
 }
 
-try:
-    # Test the connection
-    client.admin.command('ping')
-    print("✅ Connected to MongoDB")
-except Exception as e:
-    print("❌ MongoDB connection failed")
-    raise e
+def seed_admin():
+    try:
+        # Test the connection
+        client.admin.command('ping')
+        print("✅ Connected to MongoDB")
+    except Exception as e:
+        print("❌ MongoDB connection failed")
+        raise e
 
-# Check if the admin user already exists and insert if not
-existing_user = users_collection.find_one({"username": admin_user["username"]})
-if existing_user:
-    print("Admin user already exists.")
-else:
-    users_collection.insert_one(admin_user)
-    print("Admin user seeded successfully.")
+    # Check if the admin user already exists and insert if not
+    existing_user = users_collection.find_one({"username": admin_user["username"]})
+    if existing_user:
+        print("Admin username already exists. Updating Password")
+        # Update the password if the user already exists
+        users_collection.update_one(
+            {"username": admin_user["username"]},
+            {"$set": {"hashed_password": admin_user["hashed_password"]}}
+        )
+        print("Admin user password updated successfully.")
+    else:
+        users_collection.insert_one(admin_user)
+        print("Admin user seeded successfully.")
