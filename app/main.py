@@ -11,9 +11,19 @@ import os
 from PIL import Image
 from io import BytesIO
 from datetime import timedelta
+from seed_admin import seed_admin
+from contextlib import asynccontextmanager
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Seed the admin
+    print("Seeding Admin...")
+    seed_admin()
+    yield
+    # Cleanup code can go here if needed
+
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
