@@ -24,3 +24,4 @@ pymongo>=4.0
 motor>=3.1.1
 click==8.1.7 
 h11==0.14.0
+gunicorn
