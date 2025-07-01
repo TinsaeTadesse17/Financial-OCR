@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123password")
 
 MONGO_URI = os.getenv("MONGODB_URL", "mongodb://admin:password123@mongodb:27017/financial_ocr_db?authSource=admin")
 
