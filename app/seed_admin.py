@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import certifi
 from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
@@ -14,7 +15,12 @@ MONGO_URI = os.getenv(
     "mongodb+srv://admin:password123password@cluster0.rfbjo.mongodb.net/financial_ocr_db?retryWrites=true&w=majority"
 )
 
-client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)  
+client = MongoClient(
+    MONGO_URI,
+    serverSelectionTimeoutMS=5000,
+    tls=True,
+    tlsCAFile=certifi.where()
+)  
 db = client["financial_ocr_db"]
 users_collection = db["users"]
 

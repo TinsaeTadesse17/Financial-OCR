@@ -17,6 +17,7 @@ python-jose[cryptography]
 bcrypt<4.0.0  # pin bcrypt for passlib compatibility
 passlib[bcrypt]
 python-dotenv
+certifi  # TLS CA bundle for Atlas connections
 google-api-python-client==2.166.0
 google-auth==2.38.0
 google-auth-httplib2==0.2.0
