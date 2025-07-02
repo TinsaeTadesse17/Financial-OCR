@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-import certifi
 from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
@@ -10,16 +9,13 @@ load_dotenv()
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123password")
 
-MONGO_URI = os.getenv(
-    "MONGODB_URL",
-    "mongodb+srv://admin:password123password@cluster0.rfbjo.mongodb.net/financial_ocr_db?retryWrites=true&w=majority"
-)
+MONGO_URI = os.getenv("MONGODB_URL")
+if not MONGO_URI:
+    raise RuntimeError("MONGODB_URL environment variable must be set")
 
 client = MongoClient(
     MONGO_URI,
-    serverSelectionTimeoutMS=5000,
-    tls=True,
-    tlsCAFile=certifi.where()
+    serverSelectionTimeoutMS=5000
 )  
 db = client["financial_ocr_db"]
 users_collection = db["users"]
