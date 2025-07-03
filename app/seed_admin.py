@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123password")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "I8INtdhMBRIfYpo7")
 
 MONGO_URI = os.getenv("MONGODB_URL")
 if not MONGO_URI:

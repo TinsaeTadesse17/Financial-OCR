@@ -8,7 +8,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - MISTRAL_OCR_KEY=${MISTRAL_OCR_KEY}
       - SECRET_KEY=${SECRET_KEY}
-      - MONGODB_URL=mongodb://admin:password123@mongodb:27017/financial_ocr_db?authSource=admin
+      - MONGODB_URL=mongodb+srv://admin:I8INtdhMBRIfYpo7@cluster0.rfbjo.mongodb.net/financial_ocr_db?retryWrites=true&w=majority
       - DB_NAME=financial_ocr_db
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -28,7 +28,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - MISTRAL_OCR_KEY=${MISTRAL_OCR_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - MONGODB_URL=mongodb://admin:password123@mongodb:27017/financial_ocr_db?authSource=admin
+      - MONGODB_URL=mongodb+srv://admin:I8INtdhMBRIfYpo7@cluster0.rfbjo.mongodb.net/financial_ocr_db?retryWrites=true&w=majority
       - DB_NAME=financial_ocr_db
     depends_on:
       - redis
@@ -54,7 +54,7 @@ services:
         protocol: tcp
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123password
+      MONGO_INITDB_ROOT_PASSWORD: I8INtdhMBRIfYpo7
       MONGO_INITDB_DATABASE: financial_ocr_db
     volumes:
       - type: volume
