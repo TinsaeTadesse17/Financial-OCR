@@ -40,7 +40,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.post("/process-pdf")
 async def process_pdf(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_active_user)
 ):
     file_id = str(uuid.uuid4())
     temp_path = f"uploads/{file_id}.pdf"
@@ -50,13 +49,11 @@ async def process_pdf(
         content = await file.read()
         f.write(content)
 
-    task = process_pdf_task.delay(temp_path)
-    return JSONResponse({"task_id": task.id})
+    return process_pdf_task(temp_path)
 
 @app.post("/process-img")
 async def process_image(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_active_user)
 ):
     IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"}
     if file.content_type not in IMAGE_MIME_TYPES:
@@ -81,11 +78,10 @@ async def process_image(
     pdf_temp_path = f"uploads/{file_id}.pdf"
     image_to_pdf(image_path=temp_path, save_path=pdf_temp_path)
 
-    task = process_pdf_task.delay(pdf_temp_path)
-    return JSONResponse({"task_id": task.id})
+    return process_pdf_task(pdf_temp_path)
 
 @app.get("/tasks/{task_id}")
-async def get_task_status(task_id: str, current_user: User = Depends(get_current_active_user)):
+async def get_task_status(task_id: str):
     task = process_pdf_task.AsyncResult(task_id)
     return {
         "task_id": task_id,
