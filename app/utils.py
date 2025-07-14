@@ -9,6 +9,7 @@ from mistralai import Mistral
 
 import pytesseract
 import google.generativeai as genai
+from pydantic import BaseModel
 
 from spire.pdf.common import *
 from spire.pdf import *
@@ -16,6 +17,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = Mistral(api_key=os.getenv("MISTRAL_OCR_KEY"))
+
+
+class Transaction(BaseModel):
+    Date: str
+    Name: str
+    Amount: float
 
 
 
@@ -210,33 +217,48 @@ def format_with_gemini(text: str, mistral_text: str) -> str:
         # client = genai.Client(api_key=gemini_api_key)
 
         prompt = [
-            "You are an expert document formatter specializing in financial documents. "
-            "You also will recieve identification documents and extract the key value pairs to a json document accordingly",
-            "Your task is to convert the provided text into a highly structured JSON Format. ",
-            "You will be provided with two ocr results, one from tesseract ocr and another from mistral ocr. Always take the best response from the two and try your best to understand the document using both of the ocr results."
-            "Please ensure the following: \n"
-            "- Preserve all original tables, headings, subheadings, bullet points, and lists accurately. \n"
-            "- Maintain all numerical data, currency symbols, percentages, dates, and financial details without alteration. \n"
-            "- Correct minor OCR errors or misalignments without changing the intended financial information; annotate ambiguous sections with '[Review]' for manual verification. \n"
-            "- Ensure a clear hierarchical structure (sections, subsections, etc.) is maintained. \n"
-            "- Do not remove or mask sensitive data; focus solely on formatting improvements to enhance clarity and readability. \n"
-            "- Handle all possible formatting inconsistencies robustly to produce a clean, professional json format."
-            "- For the keys of the json unless a specific schema is provided try to pick a standard way of representing the variables in their specific domain, so use 'Total Assets' instead of 'total_assets'"
-            "NOTICE: BE CAREFUL ABOUT THE STRUCTURE OF THE DOCUMENT. DO NOT ALTER THE MEANING OF THE TEXT.",
-            "Respond ONLY with a valid JSON that can be parsed using Python's json.loads()",
+            "You are an expert in financial document parsing and transaction extraction. "
+            "Your task is to extract only the transactions present in the provided text, structuring them clearly into a JSON array.",
+
+            "You will be provided with two OCR results, one from Tesseract OCR and another from Mistral OCR. "
+            "Always select the best and most accurate information from both OCR outputs to clearly understand and extract each transaction.",
+
+            "Each extracted transaction must strictly follow this JSON structure:\n"
+            "{\n"
+            '  "date": string,  # in YYYY-MM-DD format if possible, otherwise preserve original\n'
+            '  "name": string,\n # name of the transaction, can be a person or company name or the thing bought\n'
+            '  "amount": number  # negative for expenses, positive for income\n'
+            "}\n",
+
+            "Please adhere strictly to the following guidelines:\n"
+            "- Include only transaction details: date, name, and amount. Ignore any unrelated text or document details.\n"
+            "- Preserve all numerical values exactly as they appear; do not round, approximate, or modify numbers.\n"
+            "- Correct minor OCR errors if obvious; otherwise, annotate ambiguous transactions clearly with '[Review]'.\n"
+            "- Use negative numbers to indicate expenses and positive numbers for incomes, based on context from the document.\n"
+            "- Do not include any additional keys or metadata; strictly follow the provided JSON structure.\n",
+
+            "NOTICE: DO NOT ALTER THE MEANING OR NUMERICAL VALUES OF THE TRANSACTIONS.",
+
+            "Respond ONLY with a valid JSON array that can be parsed using Python's json.loads(). No explanations or additional text.",
+
             f"tesseract ocr: {text}",
-            f"mistral ocr: {mistral_text} "
+            f"mistral ocr: {mistral_text}"
         ]
+
         model = genai.GenerativeModel('gemini-2.0-flash')
         response = model.generate_content(
-            '\n'.join(prompt)
+            contents='\n'.join(prompt),
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=list[Transaction]
+            )
         )
         
         response_text = response.text
-
+        print("Response from Gemini:", response_text)
         response_json = repair_json_response(response_text)
 
-        return response_json
+        return json.loads(response_text)
     except Exception as e:
         logging.error("Error formatting text with Gemini", exc_info=True)
         raise PDFProcessingError("Failed to format text with Gemini") from e

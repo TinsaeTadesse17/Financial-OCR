@@ -1,6 +1,6 @@
 services:
   api:
-    build: 
+    build:
       context: ./app
     ports:
       - 5000:8000
@@ -14,14 +14,16 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       - redis
-      - mongodb
     volumes:
       - type: bind
         source: ./uploads
         target: /app/uploads
+      - type: bind
+        source: ./app
+        target: /app
 
   worker:
-    build: 
+    build:
       context: ./app
     command: celery -A tasks worker --loglevel=info
     environment:
