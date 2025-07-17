@@ -225,17 +225,10 @@ def format_with_gemini(text: str, mistral_text: str) -> str:
 
             "Each extracted transaction must strictly follow this JSON structure:\n"
             "{\n"
-            '  "date": string,  # in YYYY-MM-DD format if possible, otherwise preserve original\n'
-            '  "name": string,\n # name of the transaction, can be a person or company name or the thing bought\n'
-            '  "amount": number  # negative for expenses, positive for income\n'
+            '  "date": string,  # REQUIRED in YYYY-MM-DD format if possible, otherwise preserve original\n'
+            '  "name": string,\n # REQUIRED name of the transaction, can be a person or company name or the thing bought, extract this from the document\n'
+            '  "amount": number  # REQUIRED negative for expenses, positive for income\n'
             "}\n",
-
-            "Please adhere strictly to the following guidelines:\n"
-            "- Include only transaction details: date, name, and amount. Ignore any unrelated text or document details.\n"
-            "- Preserve all numerical values exactly as they appear; do not round, approximate, or modify numbers.\n"
-            "- Correct minor OCR errors if obvious; otherwise, annotate ambiguous transactions clearly with '[Review]'.\n"
-            "- Use negative numbers to indicate expenses and positive numbers for incomes, based on context from the document.\n"
-            "- Do not include any additional keys or metadata; strictly follow the provided JSON structure.\n",
 
             "NOTICE: DO NOT ALTER THE MEANING OR NUMERICAL VALUES OF THE TRANSACTIONS.",
 
@@ -245,7 +238,7 @@ def format_with_gemini(text: str, mistral_text: str) -> str:
             f"mistral ocr: {mistral_text}"
         ]
 
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(
             contents='\n'.join(prompt),
             generation_config=genai.GenerationConfig(
@@ -256,7 +249,6 @@ def format_with_gemini(text: str, mistral_text: str) -> str:
         
         response_text = response.text
         print("Response from Gemini:", response_text)
-        response_json = repair_json_response(response_text)
 
         return json.loads(response_text)
     except Exception as e:

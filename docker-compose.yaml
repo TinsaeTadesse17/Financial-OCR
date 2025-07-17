@@ -12,8 +12,6 @@ services:
       - DB_NAME=financial_ocr_db
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-    depends_on:
-      - redis
     volumes:
       - type: bind
         source: ./uploads
@@ -21,50 +19,3 @@ services:
       - type: bind
         source: ./app
         target: /app
-
-  worker:
-    build:
-      context: ./app
-    command: celery -A tasks worker --loglevel=info
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - MISTRAL_OCR_KEY=${MISTRAL_OCR_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - MONGODB_URL=mongodb+srv://admin:I8INtdhMBRIfYpo7@cluster0.rfbjo.mongodb.net/financial_ocr_db?retryWrites=true&w=majority
-      - DB_NAME=financial_ocr_db
-    depends_on:
-      - redis
-      - mongodb
-    volumes:
-      - type: bind
-        source: ./uploads
-        target: /app/uploads
-
-  redis:
-    image: redis:7.2-alpine
-    ports:
-      - target: 6379
-        published: 6380
-        protocol: tcp
-
-  mongodb:
-    image: mongo:6.0
-    restart: always
-    ports:
-      - target: 27017
-        published: 27017
-        protocol: tcp
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: I8INtdhMBRIfYpo7
-      MONGO_INITDB_DATABASE: financial_ocr_db
-    volumes:
-      - type: volume
-        source: mongodb_data
-        target: /data/db
-      - type: bind
-        source: ./mongo-init.js
-        target: /docker-entrypoint-initdb.d/mongo-init.js
-
-volumes:
-  mongodb_data:
